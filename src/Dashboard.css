@@ -1,0 +1,31 @@
+/* Dashboard.css */
+
+/* Glass effect for main content */
+.glass-card {
+  background: rgba(255, 255, 255, 0.15); /* semi-transparent */
+  backdrop-filter: blur(10px);           /* frosted blur */
+  -webkit-backdrop-filter: blur(10px);   /* Safari support */
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+/* Sidebar button hover animation */
+.sidebar-btn {
+  transition: all 0.3s ease;
+}
+
+.sidebar-btn:hover {
+  transform: translateX(5px);
+  background-color: #e9ecef;
+}
+
+/* Sidebar icon hover animation */
+.sidebar-icon {
+  transition: color 0.3s ease;
+}
+
+.sidebar-btn:hover .sidebar-icon {
+  color: #0d6efd; /* Bootstrap primary blue */
+}
