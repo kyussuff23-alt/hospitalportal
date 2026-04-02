@@ -29,3 +29,26 @@
 .sidebar-btn:hover .sidebar-icon {
   color: #0d6efd; /* Bootstrap primary blue */
 }
+
+/* Make tables adapt better on small screens */
+@media (max-width: 768px) {
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+  }
+
+  .table th,
+  .table td {
+    white-space: nowrap;   /* prevent text wrapping that causes tall rows */
+    font-size: 0.85rem;    /* shrink text slightly */
+    padding: 0.4rem;       /* tighter padding */
+  }
+
+  /* Allow long text to truncate instead of forcing scroll */
+  .table td {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 120px;      /* adjust as needed */
+  }
+}
+

@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient";
 import { useNavigate } from "react-router-dom";
-
 import Payment from "./Payment";
 import Reconciliation from "./Reconciliation";
 import Claims from "./Claims";
 import "./Dashboard.css";
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // ✅ ensure Bootstrap JS is loaded
+import { Offcanvas } from 'bootstrap';
+
 
 function Dashboard({ hcpCode, setIsAuthenticated }) {
   const [hospitalName, setHospitalName] = useState("");
-  const [selectedPage, setSelectedPage] = useState("claims"); // ✅ default MyClaims
+  const [selectedPage, setSelectedPage] = useState("claims");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,14 +21,32 @@ function Dashboard({ hcpCode, setIsAuthenticated }) {
         .select("name")
         .eq("hcpcode", hcpCode)
         .single();
-
-      if (!error && data) {
-        setHospitalName(data.name);
-      }
+      if (!error && data) setHospitalName(data.name);
     };
-
     if (hcpCode) fetchHospitalName();
   }, [hcpCode]);
+
+  // ✅ JS fix: close offcanvas after clicking a link (mobile only)
+ useEffect(() => {
+  const offcanvasEl = document.getElementById("sidebarMenu");
+  if (!offcanvasEl) return;
+
+  const offcanvasLinks = offcanvasEl.querySelectorAll("button[data-bs-dismiss='offcanvas']");
+  offcanvasLinks.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (offcanvasEl.classList.contains("show")) {
+        const bsOffcanvas = Offcanvas.getInstance(offcanvasEl);
+        if (bsOffcanvas) bsOffcanvas.hide();
+      }
+    });
+  });
+
+  return () => {
+    offcanvasLinks.forEach((btn) => {
+      btn.removeEventListener("click", () => {});
+    });
+  };
+}, []);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -41,17 +61,26 @@ function Dashboard({ hcpCode, setIsAuthenticated }) {
   };
 
   return (
-    <div className="d-flex flex-row">
+    <div className="d-flex flex-column flex-lg-row">
+      {/* Mobile Hamburger */}
+      <div className="d-lg-none p-2 border-bottom bg-light">
+        <button
+          className="btn btn-outline-primary"
+          type="button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#sidebarMenu"
+        >
+          <i className="bi bi-list"></i> Menu
+        </button>
+      </div>
+
       {/* Sidebar */}
       <div
-        className="bg-light border-end p-3 d-flex flex-column justify-content-between"
-        style={{
-          width: "250px",
-          height: "100vh",
-          position: "fixed",   // ✅ fixed sidebar
-          top: 0,
-          left: 0
-        }}
+        id="sidebarMenu"
+        className="offcanvas-lg offcanvas-start bg-light border-end p-3 d-flex flex-column justify-content-between"
+        style={{ width: "250px" }}
+        data-bs-backdrop="false"
+        data-bs-scroll="true"
       >
         <div>
           <h4 className="mb-4 text-primary">Dashboard</h4>
@@ -62,12 +91,11 @@ function Dashboard({ hcpCode, setIsAuthenticated }) {
                   selectedPage === "claims" ? "btn-primary" : "btn-outline-primary"
                 }`}
                 onClick={() => setSelectedPage("claims")}
+                data-bs-dismiss="offcanvas"
               >
-                <i
-                  className={`bi bi-file-earmark-text me-2 sidebar-icon ${
-                    selectedPage === "claims" ? "text-white" : "text-primary"
-                  }`}
-                ></i>
+                <i className={`bi bi-file-earmark-text me-2 sidebar-icon ${
+                  selectedPage === "claims" ? "text-white" : "text-primary"
+                }`}></i>
                 Claims
               </button>
             </li>
@@ -77,12 +105,11 @@ function Dashboard({ hcpCode, setIsAuthenticated }) {
                   selectedPage === "payment" ? "btn-primary" : "btn-outline-primary"
                 }`}
                 onClick={() => setSelectedPage("payment")}
+                data-bs-dismiss="offcanvas"
               >
-                <i
-                  className={`bi bi-credit-card me-2 sidebar-icon ${
-                    selectedPage === "payment" ? "text-white" : "text-primary"
-                  }`}
-                ></i>
+                <i className={`bi bi-credit-card me-2 sidebar-icon ${
+                  selectedPage === "payment" ? "text-white" : "text-primary"
+                }`}></i>
                 Payment
               </button>
             </li>
@@ -92,12 +119,11 @@ function Dashboard({ hcpCode, setIsAuthenticated }) {
                   selectedPage === "reconciliation" ? "btn-primary" : "btn-outline-primary"
                 }`}
                 onClick={() => setSelectedPage("reconciliation")}
+                data-bs-dismiss="offcanvas"
               >
-                <i
-                  className={`bi bi-bar-chart me-2 sidebar-icon ${
-                    selectedPage === "reconciliation" ? "text-white" : "text-primary"
-                  }`}
-                ></i>
+                <i className={`bi bi-bar-chart me-2 sidebar-icon ${
+                  selectedPage === "reconciliation" ? "text-white" : "text-primary"
+                }`}></i>
                 Reconciliation
               </button>
             </li>
@@ -106,31 +132,28 @@ function Dashboard({ hcpCode, setIsAuthenticated }) {
 
         {/* Logout pinned at bottom */}
         <div>
-          <button className="btn btn-dark w-100 sidebar-btn" onClick={handleLogout}>
+          <button
+            className="btn btn-dark w-100 sidebar-btn"
+            onClick={handleLogout}
+            data-bs-dismiss="offcanvas"
+          >
             Log Out
           </button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div
-        className="flex-grow-1 p-4 d-flex flex-column align-items-center"
-        style={{ marginLeft: "250px", overflowY: "auto", height: "100vh" }}
-      >
-        {/* Greeting header centered with hospital icon */}
-        <div className="mb-4 text-center d-flex align-items-center justify-content-center gap-2">
+      <div className="flex-grow-1 p-4 d-flex flex-column align-items-center ms-lg-250">
+        <div className="mb-4 text-center d-flex align-items-center justify-content-center gap-2 flex-wrap">
           <i className="bi bi-hospital text-primary" style={{ fontSize: "2rem" }}></i>
           <h2 className="m-0">{getGreeting()}, {hospitalName}</h2>
         </div>
 
-        {/* Page content with glass effect */}
-<div className="w-100 glass-card flex-grow-1">
-  {selectedPage === "claims" && <Claims hcpCode={hcpCode} hospitalName={hospitalName} />}
-  {selectedPage === "payment" && <Payment hcpCode={hcpCode} />}
-  {selectedPage === "reconciliation" && <Reconciliation hcpCode={hcpCode} />}
-</div>
-
-
+        <div className="w-100 glass-card flex-grow-1">
+          {selectedPage === "claims" && <Claims hcpCode={hcpCode} hospitalName={hospitalName} />}
+          {selectedPage === "payment" && <Payment hcpCode={hcpCode} />}
+          {selectedPage === "reconciliation" && <Reconciliation hcpCode={hcpCode} />}
+        </div>
       </div>
     </div>
   );

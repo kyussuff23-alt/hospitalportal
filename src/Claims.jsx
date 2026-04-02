@@ -136,14 +136,17 @@ export default function Claims({ hcpCode, hospitalName }) {
     return false;
   });
 
-  return (
-    <div className="p-4">
-      {/* Upload + Template */}
-      <div className="d-flex align-items-center gap-3 mb-4 flex-wrap">
+ return (
+  <div className="p-4">
+    {/* Upload + Template */}
+    <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+      <div className="d-flex align-items-center gap-2 flex-wrap">
         <i className="bi bi-info-circle text-warning" style={{ fontSize: "1.5rem" }}></i>
-        <span className="text-muted">
+        <span className="text-muted small">
           Ensure you fill in the CSV template correctly (date must be YYYY-MM-DD).
         </span>
+      </div>
+      <div className="d-flex flex-wrap gap-2">
         <button className="btn btn-outline-success" onClick={handleDownloadTemplate}>
           <i className="bi bi-filetype-csv me-2"></i> Download Template
         </button>
@@ -160,45 +163,47 @@ export default function Claims({ hcpCode, hospitalName }) {
           />
         </label>
       </div>
-
-      {/* Alerts */}
-      {alert.message && (
-        <div className={`alert alert-${alert.type}`} role="alert">
-          {alert.message}
-        </div>
-      )}
-
-      {/* Table */}
-      <div className="glass-card table-responsive" style={{ maxHeight: "400px", overflowY: "auto" }}>
-        <table className="table table-striped table-hover align-middle">
-          <thead className="table-primary sticky-top">
-            <tr>
-              <th>Date</th>
-              <th>Provider</th>
-              <th>hcpcode</th>
-              <th>Ticket Number</th>
-            </tr>
-          </thead>
-          <tbody>
-            {groupedClaims.length === 0 ? (
-              <tr>
-                <td colSpan="4" className="text-center text-muted">
-                  No claims uploaded yet.
-                </td>
-              </tr>
-            ) : (
-              groupedClaims.map((claim, index) => (
-                <tr key={index}>
-                  <td>{formatDate(claim.created_at)}</td>
-                  <td>{hospitalName}</td> {/* ✅ show hospital name from prop */}
-                  <td>{claim.hcpcode}</td>
-                  <td>{claim.ticket}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
     </div>
-  );
+
+    {/* Alerts */}
+    {alert.message && (
+      <div className={`alert alert-${alert.type} mb-3`} role="alert">
+        {alert.message}
+      </div>
+    )}
+
+    {/* Table */}
+    <div className="glass-card table-responsive" style={{ maxHeight: "400px", overflowY: "auto" }}>
+      <table className="table table-striped table-hover align-middle">
+        <thead className="table-primary sticky-top">
+          <tr>
+            <th>Date</th>
+            <th>Provider</th>
+            <th>hcpcode</th>
+            <th>Ticket Number</th>
+          </tr>
+        </thead>
+        <tbody>
+          {groupedClaims.length === 0 ? (
+            <tr>
+              <td colSpan="4" className="text-center text-muted">
+                No claims uploaded yet.
+              </td>
+            </tr>
+          ) : (
+            groupedClaims.map((claim, index) => (
+              <tr key={index}>
+                <td className="text-truncate">{formatDate(claim.created_at)}</td>
+                <td className="text-truncate">{hospitalName}</td>
+                <td className="text-truncate">{claim.hcpcode}</td>
+                <td className="text-truncate">{claim.ticket}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+);
+
 }
