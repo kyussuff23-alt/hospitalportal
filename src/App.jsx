@@ -8,7 +8,8 @@ import Claims from "./Claims";
 
 import Reconciliation from "./Reconciliation";
 import ProtectedRoute from "./ProtectedRoute";
-import Payment from "./Payment"
+import Payment from "./Payment";
+import Attachment from "./Attachment"
 
 
 export default function App() {
@@ -68,6 +69,16 @@ export default function App() {
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
               <Reconciliation hcpCode={hcpCode} hospitalName={hospitalName} /> {/* ✅ pass hospitalName */}
+            </ProtectedRoute>
+          }
+        />
+
+
+         <Route
+          path="/attachment"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Attachment hcpCode={hcpCode} hospitalName={hospitalName} /> {/* ✅ pass hospitalName */}
             </ProtectedRoute>
           }
         />

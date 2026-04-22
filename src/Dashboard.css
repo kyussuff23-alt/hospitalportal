@@ -52,3 +52,24 @@
   }
 }
 
+/* Better table rendering on small screens */
+@media (max-width: 768px) {
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* smooth scroll */
+  }
+
+  .table th,
+  .table td {
+    font-size: 1rem;        /* keep text readable */
+    padding: 0.75rem;       /* more breathing room */
+    white-space: nowrap;    /* prevent wrapping that makes rows tall */
+  }
+
+  /* Truncate long text gracefully */
+  .table td {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 150px;       /* adjust to fit your design */
+  }
+}
