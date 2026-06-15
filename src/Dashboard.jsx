@@ -1,21 +1,50 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "./supabaseClient";
 import { useNavigate } from "react-router-dom";
+import React from "react";
 import Payment from "./Payment";
-import Reconciliation from "./Reconciliation";
+import Authorization from "./Authorization";
 import Claims from "./Claims";
 import Attachment from "./Attachment";
 
 import "./Dashboard.css";
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import { Offcanvas } from 'bootstrap';
 import bcrypt from "bcryptjs";
 
-function Dashboard({ hcpCode, setIsAuthenticated }) {
+// Memoize child components to avoid unnecessary re-renders
+const MemoClaims = React.memo(Claims);
+const MemoPayment = React.memo(Payment);
+const MemoAuthorization = React.memo(Authorization);
+const MemoAttachment = React.memo(Attachment);
+
+// ✅ FIX 1: Greeting declared out here so React tracks its hook states properly
+function Greeting() {
+  const [hour, setHour] = useState(new Date().getHours());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHour(new Date().getHours());
+    }, 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const greeting = useMemo(() => {
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  }, [hour]);
+
+  return <h2>{greeting}</h2>;
+}
+
+export default function Dashboard({ hcpCode, setIsAuthenticated }) {
   const [hospitalName, setHospitalName] = useState("");
   const [selectedPage, setSelectedPage] = useState("claims");
+  
+  // ✅ FIX 2: Moved currentPassword inside the actual Dashboard component
   const [currentPassword, setCurrentPassword] = useState("");
+  // ✅ FIX 3: Added missing state declaration for newPassword to prevent crash
   const [newPassword, setNewPassword] = useState("");
+
   const [errorAlert, setErrorAlert] = useState("");
   const [successAlert, setSuccessAlert] = useState("");
   const navigate = useNavigate();
@@ -32,40 +61,13 @@ function Dashboard({ hcpCode, setIsAuthenticated }) {
     if (hcpCode) fetchHospitalName();
   }, [hcpCode]);
 
-  useEffect(() => {
-    const offcanvasEl = document.getElementById("sidebarMenu");
-    if (!offcanvasEl) return;
-
-    const offcanvasLinks = offcanvasEl.querySelectorAll("button[data-bs-dismiss='offcanvas']");
-    offcanvasLinks.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        if (offcanvasEl.classList.contains("show")) {
-          const bsOffcanvas = Offcanvas.getInstance(offcanvasEl);
-          if (bsOffcanvas) bsOffcanvas.hide();
-        }
-      });
-    });
-
-    return () => {
-      offcanvasLinks.forEach((btn) => {
-        btn.removeEventListener("click", () => {});
-      });
-    };
-  }, []);
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
-  };
-
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
+    localStorage.clear();
     setIsAuthenticated(false);
     navigate("/login");
-  };
+  }, [navigate, setIsAuthenticated]);
 
-  const handleChangePassword = async (e) => {
+  const handleChangePassword = useCallback(async (e) => {
     e.preventDefault();
 
     if (!currentPassword || !newPassword) {
@@ -78,6 +80,11 @@ function Dashboard({ hcpCode, setIsAuthenticated }) {
       .select("password")
       .eq("hcpcode", hcpCode)
       .single();
+
+    if (!user) {
+      setErrorAlert("User profile not found.");
+      return;
+    }
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
@@ -98,165 +105,139 @@ function Dashboard({ hcpCode, setIsAuthenticated }) {
       setCurrentPassword("");
       setNewPassword("");
     }
-  };
+  }, [currentPassword, newPassword, hcpCode]);
 
-  return (
-    <div className="d-flex flex-column flex-lg-row">
-      {/* Mobile Hamburger */}
-      <div className="d-lg-none p-2 border-bottom bg-light">
-        <button
-          className="btn btn-outline-primary"
-          type="button"
-          data-bs-toggle="offcanvas"
-          data-bs-target="#sidebarMenu"
-        >
-          <i className="bi bi-list"></i> Menu
-        </button>
+
+ 
+return (
+   <div className="d-flex flex-column flex-lg-row">
+  {/* Mobile Hamburger */}
+  <div className="d-lg-none p-2 border-bottom bg-light">
+    <button
+      className="btn btn-outline-primary"
+      type="button"
+      data-bs-toggle="offcanvas"
+      data-bs-target="#sidebarMenu"
+    >
+      <i className="bi bi-list"></i> Menu
+    </button>
+  </div>
+
+  {/* Sidebar */}
+  <div
+    id="sidebarMenu"
+    className="offcanvas-lg offcanvas-start bg-light border-end p-3 d-flex flex-column"
+    data-bs-backdrop="false"
+    data-bs-scroll="true"
+  >
+    <div>
+      <h4 className="mb-4 text-primary">Dashboard</h4>
+      <ul className="nav flex-column gap-3">
+        {["claims", "payment", "authorization", "attachment", "changePassword"].map((page) => (
+          <li className="nav-item" key={page}>
+            <button
+              className={`btn w-100 text-start sidebar-btn ${
+                selectedPage === page ? "btn-primary" : "btn-outline-primary"
+              }`}
+              onClick={() => setSelectedPage(page)}
+            >
+              <i
+                className={`bi ${
+                  page === "claims"
+                    ? "bi-file-earmark-text"
+                    : page === "payment"
+                    ? "bi-credit-card"
+                    : page === "authorization"
+                    ? "bi-bar-chart"
+                    : page === "attachment"
+                    ? "bi-paperclip"
+                    : "bi-key"
+                } me-2 sidebar-icon ${
+                  selectedPage === page ? "text-white" : "text-primary"
+                }`}
+              ></i>
+              {page === "claims"
+                ? "Claims"
+                : page === "payment"
+                ? "Payment"
+                : page === "authorization"
+                ? "Authorization"
+                : page === "attachment"
+                ? "Attachment"
+                : "Change Password"}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    {/* Logout pinned at bottom */}
+    <div className="mt-auto">
+      <button className="btn btn-dark w-100 sidebar-btn" onClick={handleLogout}>
+        Log Out
+      </button>
+    </div>
+  </div>
+
+  {/* Main Content */}
+  <div className="flex-grow-1 p-4 d-flex flex-column main-content"> {/* FIXED: Removed align-items-center */}
+  <div className="mb-4 d-flex align-items-center gap-2 flex-wrap text-start"> {/* FIXED: Removed center utilities, added text-start */}
+    <i className="bi bi-hospital text-primary" style={{ fontSize: "2rem" }}></i>
+    <h2 className="m-0 d-flex align-items-center gap-2">
+      <Greeting /> | {hospitalName}
+    </h2>
+  </div>
+
+
+    <div className="w-100 glass-card flex-grow-1">
+      <div style={{ display: selectedPage === "claims" ? "block" : "none" }}>
+        <MemoClaims hcpCode={hcpCode} hospitalName={hospitalName} />
       </div>
-
-      {/* Sidebar */}
-      <div
-        id="sidebarMenu"
-        className="offcanvas-lg offcanvas-start bg-light border-end p-3 d-flex flex-column justify-content-between"
-        style={{ width: "250px" }}
-        data-bs-backdrop="false"
-        data-bs-scroll="true"
-      >
-        <div>
-          <h4 className="mb-4 text-primary">Dashboard</h4>
-          <ul className="nav flex-column gap-3">
-            <li className="nav-item">
-              <button
-                className={`btn w-100 text-start sidebar-btn ${
-                  selectedPage === "claims" ? "btn-primary" : "btn-outline-primary"
-                }`}
-                onClick={() => setSelectedPage("claims")}
-                data-bs-dismiss="offcanvas"
-              >
-                <i className={`bi bi-file-earmark-text me-2 sidebar-icon ${
-                  selectedPage === "claims" ? "text-white" : "text-primary"
-                }`}></i>
-                Claims
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`btn w-100 text-start sidebar-btn ${
-                  selectedPage === "payment" ? "btn-primary" : "btn-outline-primary"
-                }`}
-                onClick={() => setSelectedPage("payment")}
-                data-bs-dismiss="offcanvas"
-              >
-                <i className={`bi bi-credit-card me-2 sidebar-icon ${
-                  selectedPage === "payment" ? "text-white" : "text-primary"
-                }`}></i>
-                Payment
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`btn w-100 text-start sidebar-btn ${
-                  selectedPage === "reconciliation" ? "btn-primary" : "btn-outline-primary"
-                }`}
-                onClick={() => setSelectedPage("reconciliation")}
-                data-bs-dismiss="offcanvas"
-              >
-                <i className={`bi bi-bar-chart me-2 sidebar-icon ${
-                  selectedPage === "reconciliation" ? "text-white" : "text-primary"
-                }`}></i>
-                Reconciliation
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`btn w-100 text-start sidebar-btn ${
-                  selectedPage === "attachment" ? "btn-primary" : "btn-outline-primary"
-                }`}
-                onClick={() => setSelectedPage("attachment")}
-                data-bs-dismiss="offcanvas"
-              >
-                <i className={`bi bi-paperclip me-2 sidebar-icon ${
-                  selectedPage === "attachment" ? "text-white" : "text-primary"
-                }`}></i>
-                Attachment
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`btn w-100 text-start sidebar-btn ${
-                  selectedPage === "changePassword" ? "btn-primary" : "btn-outline-primary"
-                }`}
-                onClick={() => setSelectedPage("changePassword")}
-                data-bs-dismiss="offcanvas"
-              >
-                <i className={`bi bi-key me-2 sidebar-icon ${
-                  selectedPage === "changePassword" ? "text-white" : "text-primary"
-                }`}></i>
-                Change Password
-              </button>
-            </li>
-          </ul>
-        </div>
-
-        {/* Logout pinned at bottom */}
-        <div>
-          <button
-            className="btn btn-dark w-100 sidebar-btn"
-            onClick={handleLogout}
-            data-bs-dismiss="offcanvas"
-          >
-            Log Out
-          </button>
-        </div>
+      <div style={{ display: selectedPage === "payment" ? "block" : "none" }}>
+        <MemoPayment hcpCode={hcpCode} />
       </div>
-
-      {/* Main Content */}
-      <div className="flex-grow-1 p-4 d-flex flex-column align-items-center ms-lg-250">
-        <div className="mb-4 text-center d-flex align-items-center justify-content-center gap-2 flex-wrap">
-          <i className="bi bi-hospital text-primary" style={{ fontSize: "2rem" }}></i>
-          <h2 className="m-0">{getGreeting()}, {hospitalName}</h2>
-        </div>
-
-        <div className="w-100 glass-card flex-grow-1">
-          {selectedPage === "claims" && <Claims hcpCode={hcpCode} hospitalName={hospitalName} />}
-          {selectedPage === "payment" && <Payment hcpCode={hcpCode} />}
-          {selectedPage === "reconciliation" && <Reconciliation hcpCode={hcpCode} />}
-          {selectedPage === "attachment" && <Attachment hcpCode={hcpCode} />}
-          {selectedPage === "changePassword" && (
-            <div className="p-4">
-              {errorAlert && <div className="alert alert-danger">{errorAlert}</div>}
-              {successAlert && <div className="alert alert-success">{successAlert}</div>}
-              <form onSubmit={handleChangePassword}>
-                <div className="mb-3">
-                  <input
-                    type="password"
-                    className="form-control"
-                    placeholder="Current Password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="mb-3">
-                  <input
-                    type="password"
-                    className="form-control"
-                    placeholder="New Password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                               <button type="submit" className="btn btn-warning w-100">
-                  Change Password
-                </button>
-              </form>
+      <div style={{ display: selectedPage === "authorization" ? "block" : "none" }}>
+        <MemoAuthorization hcpCode={hcpCode} hospitalName={hospitalName} />
+      </div>
+      <div style={{ display: selectedPage === "attachment" ? "block" : "none" }}>
+        <MemoAttachment hcpCode={hcpCode} />
+      </div>
+      <div style={{ display: selectedPage === "changePassword" ? "block" : "none" }}>
+        <div className="p-4">
+          {errorAlert && <div className="alert alert-danger">{errorAlert}</div>}
+          {successAlert && <div className="alert alert-success">{successAlert}</div>}
+          <form onSubmit={handleChangePassword}>
+            <div className="mb-3">
+              <input
+                type="password"
+                className="form-control"
+                placeholder="Current Password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+              />
             </div>
-          )}
+            <div className="mb-3">
+              <input
+                type="password"
+                className="form-control"
+                placeholder="New Password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-warning w-100">
+              Change Password
+            </button>
+          </form>
         </div>
       </div>
     </div>
+  </div>
+</div>
+
   );
 }
 
-export default Dashboard;
+

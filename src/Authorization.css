@@ -1,0 +1,20 @@
+/* Limit long text in table cells */
+.text-truncate {
+  max-width: 200px;       /* adjust width as needed */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Allow wrapping for multi-line fields */
+.text-wrap {
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* Optional: style the table container to prevent overflow */
+.table-container {
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: auto;       /* horizontal scroll if needed */
+}

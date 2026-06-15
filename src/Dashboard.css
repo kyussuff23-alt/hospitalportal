@@ -1,75 +1,68 @@
-/* Dashboard.css */
+/* Sidebar stays fixed */
+#sidebarMenu {
+  width: 250px;
+  flex-shrink: 0; /* prevents shrinking */
+   height: 100vh; /* ✅ sidebar always full height */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main content respects sidebar */
+.main-content {
+  flex-grow: 1;
+  overflow-x: auto; /* allow horizontal scroll if table is wide */
+}
 
 /* Glass effect for main content */
 .glass-card {
-  background: rgba(255, 255, 255, 0.15); /* semi-transparent */
-  backdrop-filter: blur(10px);           /* frosted blur */
-  -webkit-backdrop-filter: blur(10px);   /* Safari support */
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   padding: 2rem;
+  min-height: 500px; /* ✅ keeps layout stable */
 }
 
 /* Sidebar button hover animation */
 .sidebar-btn {
   transition: all 0.3s ease;
 }
-
 .sidebar-btn:hover {
   transform: translateX(5px);
   background-color: #e9ecef;
 }
-
-/* Sidebar icon hover animation */
 .sidebar-icon {
   transition: color 0.3s ease;
 }
-
 .sidebar-btn:hover .sidebar-icon {
-  color: #0d6efd; /* Bootstrap primary blue */
+  color: #0d6efd;
 }
 
-/* Make tables adapt better on small screens */
+/* Table utilities */
+.table td.text-wrap {
+  white-space: normal;
+  word-break: break-word;
+  max-width: 200px;
+}
+
+/* Responsive tweaks */
 @media (max-width: 768px) {
   .table-responsive {
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
   }
 
   .table th,
   .table td {
-    white-space: nowrap;   /* prevent text wrapping that causes tall rows */
-    font-size: 0.85rem;    /* shrink text slightly */
-    padding: 0.4rem;       /* tighter padding */
+    font-size: 0.9rem;
+    padding: 0.5rem;
   }
 
-  /* Allow long text to truncate instead of forcing scroll */
-  .table td {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    max-width: 120px;      /* adjust as needed */
+  /* Remove truncation to avoid jumps */
+  .table td:not(.text-wrap) {
+    max-width: 120px;
   }
 }
 
-/* Better table rendering on small screens */
-@media (max-width: 768px) {
-  .table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch; /* smooth scroll */
-  }
-
-  .table th,
-  .table td {
-    font-size: 1rem;        /* keep text readable */
-    padding: 0.75rem;       /* more breathing room */
-    white-space: nowrap;    /* prevent wrapping that makes rows tall */
-  }
-
-  /* Truncate long text gracefully */
-  .table td {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    max-width: 150px;       /* adjust to fit your design */
-  }
-}

@@ -27,48 +27,57 @@ generateHash();
     }
   }, [alert]);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+ const handleLogin = async (e) => {
+  e.preventDefault();
 
-    // Step 1: Validate HCP code against myhospitals and fetch hospital name
-    const { data: hospitalData, error: hospitalError } = await supabase
-      .from("myhospitals")
-      .select("hcpcode, name")
-      .eq("hcpcode", hcpCode)
-      .single();
+  // Step 1: Validate HCP code against myhospitals and fetch hospital name
+  const { data: hospitalData, error: hospitalError } = await supabase
+    .from("myhospitals")
+    .select("hcpcode, name")
+    .eq("hcpcode", hcpCode)
+    .single();
 
-    if (hospitalError || !hospitalData) {
-      setAlert("Your input is invalid, contact NONSUCH for profiling 08078392043 nonsuchmedicare@gmail.com.");
-      return;
-    }
+  if (hospitalError || !hospitalData) {
+    setAlert("Your input is invalid, contact NONSUCH for profiling 08078392043 nonsuchmedicare@gmail.com.");
+    return;
+  }
 
-    // Store hospital name in App state
-    setHospitalName(hospitalData.name);
+  // Store hospital name in App state
+  setHospitalName(hospitalData.name);
 
-    // Step 2: Fetch hospital profile by HCP code
-    const { data: user, error } = await supabase
-      .from("hospitalprofile")
-      .select("hcpcode, password")
-      .eq("hcpcode", hcpCode)
-      .single();
+  // Step 2: Fetch hospital profile by HCP code
+  const { data: user, error } = await supabase
+    .from("hospitalprofile")
+    .select("hcpcode, password")
+    .eq("hcpcode", hcpCode)
+    .single();
 
-    if (error || !user) {
-      setAlert("Invalid HCP Code.");
-      return;
-    }
+  if (error || !user) {
+    setAlert("Invalid HCP Code.");
+    return;
+  }
 
-    // Step 3: Compare entered password with stored hash
-    const isMatch = await bcrypt.compare(password, user.password);
+  // Step 3: Compare entered password with stored hash
+  const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!isMatch) {
-      setAlert("Password is incorrect, contact NONSUCH or try again.");
-    } else {
-      setAlert("");
-      setIsAuthenticated(true);
-      setHcpCode(hcpCode);
-      navigate("/dashboard");
-    }
-  };
+  if (!isMatch) {
+    setAlert("Password is incorrect, contact NONSUCH or try again.");
+  } else {
+    setAlert("");
+    setIsAuthenticated(true);
+    setHcpCode(hcpCode);
+
+    // ✅ NEW: Persist session in localStorage with expiry
+    const expiryTime = Date.now() + 60 * 60 * 1000; // 1 hour
+    localStorage.setItem("hcpCode", hcpCode);
+    localStorage.setItem("hospitalName", hospitalData.name);
+    localStorage.setItem("isAuthenticated", "true");
+    localStorage.setItem("expiryTime", expiryTime.toString());
+
+    navigate("/dashboard");
+  }
+};
+
 
   return (
     <div className="vh-100 d-flex flex-column align-items-center bg-gradient">
