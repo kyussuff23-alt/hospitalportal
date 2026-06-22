@@ -16,7 +16,6 @@ const MemoPayment = React.memo(Payment);
 const MemoAuthorization = React.memo(Authorization);
 const MemoAttachment = React.memo(Attachment);
 
-// ✅ FIX 1: Greeting declared out here so React tracks its hook states properly
 function Greeting() {
   const [hour, setHour] = useState(new Date().getHours());
 
@@ -40,9 +39,10 @@ export default function Dashboard({ hcpCode, setIsAuthenticated }) {
   const [hospitalName, setHospitalName] = useState("");
   const [selectedPage, setSelectedPage] = useState("claims");
   
-  // ✅ FIX 2: Moved currentPassword inside the actual Dashboard component
+  // Custom manual state to force bootstrap styles to hide/show
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const [currentPassword, setCurrentPassword] = useState("");
-  // ✅ FIX 3: Added missing state declaration for newPassword to prevent crash
   const [newPassword, setNewPassword] = useState("");
 
   const [errorAlert, setErrorAlert] = useState("");
@@ -107,137 +107,165 @@ export default function Dashboard({ hcpCode, setIsAuthenticated }) {
     }
   }, [currentPassword, newPassword, hcpCode]);
 
+  return (
+    <div className="d-flex flex-column flex-lg-row w-100 min-vh-100 position-relative">
+      
+      {/* Mobile Hamburger */}
+      <div className="d-lg-none p-2 border-bottom bg-light w-100 d-flex justify-content-between align-items-center">
+        <button
+          className="btn btn-outline-primary"
+          type="button"
+          onClick={() => setIsSidebarOpen(true)}
+        >
+          <i className="bi bi-list me-2"></i> Menu
+        </button>
+        <span className="fw-bold text-primary">Dashboard</span>
+      </div>
 
- 
-return (
-   <div className="d-flex flex-column flex-lg-row">
-  {/* Mobile Hamburger */}
-  <div className="d-lg-none p-2 border-bottom bg-light">
-    <button
-      className="btn btn-outline-primary"
-      type="button"
-      data-bs-toggle="offcanvas"
-      data-bs-target="#sidebarMenu"
-    >
-      <i className="bi bi-list"></i> Menu
-    </button>
-  </div>
+      {/* Sidebar Backdrop Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="position-fixed top-0 start-0 w-100 h-100 bg-dark opacity-50 d-lg-none" 
+          style={{ zIndex: 1040 }}
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
-  {/* Sidebar */}
-  <div
-    id="sidebarMenu"
-    className="offcanvas-lg offcanvas-start bg-light border-end p-3 d-flex flex-column"
-    data-bs-backdrop="false"
-    data-bs-scroll="true"
-  >
-    <div>
-      <h4 className="mb-4 text-primary">Dashboard</h4>
-      <ul className="nav flex-column gap-3">
-        {["claims", "payment", "authorization", "attachment", "changePassword"].map((page) => (
-          <li className="nav-item" key={page}>
-            <button
-              className={`btn w-100 text-start sidebar-btn ${
-                selectedPage === page ? "btn-primary" : "btn-outline-primary"
-              }`}
-              onClick={() => setSelectedPage(page)}
-            >
-              <i
-                className={`bi ${
-                  page === "claims"
-                    ? "bi-file-earmark-text"
+      {/* Sidebar Layout */}
+      <div
+        id="sidebarMenu"
+        className={`offcanvas-lg offcanvas-start bg-light border-end p-3 d-flex flex-column h-100 min-vh-100`}
+        style={{
+          zIndex: 1050,
+          transform: isSidebarOpen ? "none" : undefined,
+          visibility: isSidebarOpen ? "visible" : undefined,
+          transition: "transform 0.3s ease-in-out"
+        }}
+      >
+        {/* Sidebar Header with Close Button */}
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h4 className="m-0 text-primary">Dashboard</h4>
+          <button 
+            type="button" 
+            className="btn-close d-lg-none" 
+            aria-label="Close"
+            onClick={() => setIsSidebarOpen(false)}
+          ></button>
+        </div>
+
+        <div>
+          <ul className="nav flex-column gap-3">
+            {["claims", "payment", "authorization", "attachment", "changePassword"].map((page) => (
+              <li className="nav-item" key={page}>
+                <button
+                  className={`btn w-100 text-start sidebar-btn ${
+                    selectedPage === page ? "btn-primary" : "btn-outline-primary"
+                  }`}
+                  onClick={() => {
+                    setSelectedPage(page);
+                    setIsSidebarOpen(false); // Closes menu when user selects an option
+                  }}
+                >
+                  <i
+                    className={`bi ${
+                      page === "claims"
+                        ? "bi-file-earmark-text"
+                        : page === "payment"
+                        ? "bi-credit-card"
+                        : page === "authorization"
+                        ? "bi-bar-chart"
+                        : page === "attachment"
+                        ? "bi-paperclip"
+                        : "bi-key"
+                    } me-2 sidebar-icon ${
+                      selectedPage === page ? "text-white" : "text-primary"
+                    }`}
+                  ></i>
+                  {page === "claims"
+                    ? "Claims"
                     : page === "payment"
-                    ? "bi-credit-card"
+                    ? "Payment"
                     : page === "authorization"
-                    ? "bi-bar-chart"
+                    ? "Authorization"
                     : page === "attachment"
-                    ? "bi-paperclip"
-                    : "bi-key"
-                } me-2 sidebar-icon ${
-                  selectedPage === page ? "text-white" : "text-primary"
-                }`}
-              ></i>
-              {page === "claims"
-                ? "Claims"
-                : page === "payment"
-                ? "Payment"
-                : page === "authorization"
-                ? "Authorization"
-                : page === "attachment"
-                ? "Attachment"
-                : "Change Password"}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
+                    ? "Attachment"
+                    : "Change Password"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-    {/* Logout pinned at bottom */}
-    <div className="mt-auto">
-      <button className="btn btn-dark w-100 sidebar-btn" onClick={handleLogout}>
-        Log Out
-      </button>
-    </div>
-  </div>
-
-  {/* Main Content */}
-  <div className="flex-grow-1 p-4 d-flex flex-column main-content"> {/* FIXED: Removed align-items-center */}
-  <div className="mb-4 d-flex align-items-center gap-2 flex-wrap text-start"> {/* FIXED: Removed center utilities, added text-start */}
-    <i className="bi bi-hospital text-primary" style={{ fontSize: "2rem" }}></i>
-    <h2 className="m-0 d-flex align-items-center gap-2">
-      <Greeting /> | {hospitalName}
-    </h2>
-  </div>
-
-
-    <div className="w-100 glass-card flex-grow-1">
-      <div style={{ display: selectedPage === "claims" ? "block" : "none" }}>
-        <MemoClaims hcpCode={hcpCode} hospitalName={hospitalName} />
-      </div>
-      <div style={{ display: selectedPage === "payment" ? "block" : "none" }}>
-        <MemoPayment hcpCode={hcpCode} />
-      </div>
-      <div style={{ display: selectedPage === "authorization" ? "block" : "none" }}>
-        <MemoAuthorization hcpCode={hcpCode} hospitalName={hospitalName} />
-      </div>
-      <div style={{ display: selectedPage === "attachment" ? "block" : "none" }}>
-        <MemoAttachment hcpCode={hcpCode} />
-      </div>
-      <div style={{ display: selectedPage === "changePassword" ? "block" : "none" }}>
-        <div className="p-4">
-          {errorAlert && <div className="alert alert-danger">{errorAlert}</div>}
-          {successAlert && <div className="alert alert-success">{successAlert}</div>}
-          <form onSubmit={handleChangePassword}>
-            <div className="mb-3">
-              <input
-                type="password"
-                className="form-control"
-                placeholder="Current Password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <input
-                type="password"
-                className="form-control"
-                placeholder="New Password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-              />
-            </div>
-            <button type="submit" className="btn btn-warning w-100">
-              Change Password
-            </button>
-          </form>
+        {/* Logout pinned at bottom */}
+        <div className="mt-auto pt-4">
+          <button 
+            className="btn btn-dark w-100 sidebar-btn" 
+            onClick={() => {
+              setIsSidebarOpen(false);
+              handleLogout();
+            }}
+          >
+            Log Out
+          </button>
         </div>
       </div>
-    </div>
-  </div>
-</div>
 
+      {/* Main Content Layout */}
+      <div className="flex-grow-1 p-4 d-flex flex-column main-content">
+        <div className="mb-4 d-flex align-items-center gap-2 flex-wrap text-start">
+          <i className="bi bi-hospital text-primary" style={{ fontSize: "2rem" }}></i>
+          <h2 className="m-0 d-flex align-items-center gap-2">
+            <Greeting /> | {hospitalName}
+          </h2>
+        </div>
+
+        <div className="w-100 glass-card flex-grow-1">
+          <div style={{ display: selectedPage === "claims" ? "block" : "none" }}>
+            <MemoClaims hcpCode={hcpCode} hospitalName={hospitalName} />
+          </div>
+          <div style={{ display: selectedPage === "payment" ? "block" : "none" }}>
+            <MemoPayment hcpCode={hcpCode} />
+          </div>
+          <div style={{ display: selectedPage === "authorization" ? "block" : "none" }}>
+            <MemoAuthorization hcpCode={hcpCode} hospitalName={hospitalName} />
+          </div>
+          <div style={{ display: selectedPage === "attachment" ? "block" : "none" }}>
+            <MemoAttachment hcpCode={hcpCode} />
+          </div>
+          <div style={{ display: selectedPage === "changePassword" ? "block" : "none" }}>
+            <div className="p-4">
+              {errorAlert && <div className="alert alert-danger">{errorAlert}</div>}
+              {successAlert && <div className="alert alert-success">{successAlert}</div>}
+              <form onSubmit={handleChangePassword}>
+                <div className="mb-3">
+                  <input
+                    type="password"
+                    className="form-control"
+                    placeholder="Current Password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <input
+                    type="password"
+                    className="form-control"
+                    placeholder="New Password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <button type="submit" className="btn btn-warning w-100">
+                  Change Password
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   );
 }
-
-
