@@ -18,3 +18,25 @@
   overflow-y: auto;
   overflow-x: auto;       /* horizontal scroll if needed */
 }
+
+/* 📱 MOBILE KEYBOARD & OVERLAY FIXES */
+
+/* Prevent the glass card container from swallowing tap events on small devices */
+@media (max-width: 768px) {
+  .glass-card {
+    position: relative;
+    z-index: 1; /* Keeps it under the modal backdrop (1040) */
+  }
+  
+  /* Make input text fields larger on phone to prevent iOS auto-zoom behavior */
+  .modal-body input, 
+  .modal-body textarea {
+    font-size: 16px !important; 
+  }
+}
+
+/* Ensure table cells honor max-width constraints when using .text-truncate */
+.table td.text-truncate {
+  max-width: 150px;
+  display: inline-block; /* or block, needed for text-overflow to work inside <td> */
+}

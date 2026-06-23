@@ -133,24 +133,37 @@ export default function Claims({ hcpCode, hospitalName }) {
         </div>
 
         <div className="d-flex flex-wrap gap-2">
-          <button
-            className="btn btn-outline-success"
-            onClick={() => setShowModal(true)}
-          >
-            <i className="bi bi-filetype-csv me-2"></i> Download Template
-          </button>
-          <label className="btn btn-primary mb-0">
-            <i className="bi bi-upload me-2"></i> Upload CSV
-            <input
-              type="file"
-              accept=".csv"
-              hidden
-              onChange={(event) => {
-                handleUploadCSV(event);
-                event.target.value = null;
-              }}
-            />
-          </label>
+         {/* ⚠️ CORRECTION: Transformed the outline success button into an elegant action link */}
+<span
+  className="text-success fw-semibold d-inline-flex align-items-center"
+  style={{ cursor: "pointer", transition: "color 0.2s ease" }}
+  onClick={() => setShowModal(true)}
+  onMouseEnter={(e) => (e.currentTarget.style.color = "#146c43")} // Darker green on hover
+  onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+>
+  <i className="bi bi-filetype-csv me-2" style={{ fontSize: "1.1rem" }}></i> 
+  Download Template
+</span>
+{/* ⚠️ CORRECTION: Transformed the stock primary label button into an elegant file-upload text link */}
+<label 
+  className="text-primary fw-semibold d-inline-flex align-items-center mb-0"
+  style={{ cursor: "pointer", transition: "color 0.2s ease" }}
+  onMouseEnter={(e) => (e.currentTarget.style.color = "#0a58ca")} // Professional darker blue on hover
+  onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+>
+  <i className="bi bi-upload me-2" style={{ fontSize: "1.1rem" }}></i> 
+  Upload CSV
+  <input
+    type="file"
+    accept=".csv"
+    hidden
+    onChange={(event) => {
+      handleUploadCSV(event);
+      event.target.value = null; // ✅ Keeps your exact input reset logic safe
+    }}
+  />
+</label>
+
         </div>
       </div>
 

@@ -102,11 +102,20 @@ const rowsPerPage = 10;
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h3 className="text-primary d-flex align-items-center gap-2">
           <i className="bi bi-bar-chart"></i>
-          <span>Authorization Requests</span>
+          <span>Auth Requests</span>
         </h3>
-        <button className="btn btn-success" onClick={() => setShowModal(true)}>
-          <i className="bi bi-plus-circle me-2"></i> Request Code
-        </button>
+      {/* ⚠️ CORRECTION: Transformed the stock primary success button into an elegant action link */}
+<span
+  className="text-success fw-semibold d-inline-flex align-items-center"
+  style={{ cursor: "pointer", transition: "color 0.2s ease" }}
+  onClick={() => setShowModal(true)}
+  onMouseEnter={(e) => (e.currentTarget.style.color = "#146c43")} // Professional darker green on hover
+  onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+>
+  <i className="bi bi-plus-circle me-2" style={{ fontSize: "1.1rem" }}></i> 
+  Request Code
+</span>
+
       </div>
 
       {/* Alerts */}
