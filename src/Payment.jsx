@@ -10,7 +10,7 @@ export default function Payment() {
       {/* Content Card */}
       <div className="p-3 border rounded bg-light glass-card">
         <p className="mb-0 text-muted text-center text-sm-start">
-          This Page is under Construction.
+          Payments history , receipts and Reconciliations.
         </p>
       </div>
     </div>

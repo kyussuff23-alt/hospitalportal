@@ -8,6 +8,20 @@ import Authorization from "./Authorization";
 import ProtectedRoute from "./ProtectedRoute";
 import Payment from "./Payment";
 import Attachment from "./Attachment";
+import RequestCode from "./RequestCode";
+import NhiaLogin from "./NhiaLogin";
+import NhiaDashboard from "./nhia-dashboard";
+// ✅ Step 1: Import your new NHIA protection guard
+import NhiaProtectedRoute from "./NhiaProtectedRoute";
+import NhiaClaimsHub from "./NhiaClaimsHub";
+import NhiaPayments from "./NhiaPayments";
+import NhiaAuthorizations from "./NhiaAuthorizations";
+import NhiaReconciliation from "./NhiaReconciliation";
+
+
+
+
+
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -24,7 +38,12 @@ export default function App() {
       setHcpCode(localStorage.getItem("hcpCode") || "");
       setHospitalName(localStorage.getItem("hospitalName") || "");
     } else {
-      localStorage.clear();
+      // ✅ Step 2: Clear Platform 1 keys specifically instead of blanket localStorage.clear()
+      // This prevents Platform 1 from wiping active NHIA sessions on app initialization.
+      localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("expiryTime");
+      localStorage.removeItem("hcpCode");
+      localStorage.removeItem("hospitalName");
       setIsAuthenticated(false);
       setHcpCode("");
       setHospitalName("");
@@ -38,7 +57,11 @@ export default function App() {
     const resetTimer = () => {
       clearTimeout(timeout);
       timeout = setTimeout(() => {
-        localStorage.clear();
+        // ✅ Step 3: Targeted key clearing here as well to isolate logout boundaries
+        localStorage.removeItem("isAuthenticated");
+        localStorage.removeItem("expiryTime");
+        localStorage.removeItem("hcpCode");
+        localStorage.removeItem("hospitalName");
         setIsAuthenticated(false);
         setHcpCode("");
         setHospitalName("");
@@ -66,6 +89,9 @@ export default function App() {
   return (
     <Router>
       <Routes>
+        {/* PUBLIC ACCESSIBLE PORTS */}
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/nhia-login" element={<NhiaLogin />} />
         <Route
           path="/login"
           element={
@@ -76,7 +102,51 @@ export default function App() {
             />
           }
         />
-        <Route path="/signup" element={<Signup />} />
+
+        {/* 🏥 SECURE PROTECTED NHIA SECTOR VIEWS */}
+        {/* ✅ Step 4: Wrapped using the new specific NhiaProtectedRoute layout */}
+        <Route
+          path="/nhia-dashboard"
+          element={
+            <NhiaProtectedRoute>
+              <NhiaDashboard />
+            </NhiaProtectedRoute>
+          }
+        />
+        <Route
+          path="/claims-hub"
+          element={
+            <NhiaProtectedRoute>
+              <NhiaClaimsHub />
+            </NhiaProtectedRoute>
+          }
+        />
+        <Route
+          path="/authorizations"
+          element={
+            <NhiaProtectedRoute>
+              <NhiaAuthorizations />
+            </NhiaProtectedRoute>
+          }
+        />
+        <Route
+          path="/reconciliation"
+          element={
+            <NhiaProtectedRoute>
+              <NhiaReconciliation />
+            </NhiaProtectedRoute>
+          }
+        />
+        <Route
+          path="/payments"
+          element={
+            <NhiaProtectedRoute>
+              <NhiaPayments />
+            </NhiaProtectedRoute>
+          }
+        />
+
+        {/* 💻 SECURE PROTECTED APP V1 VIEWS (Prastine & Untouched) */}
         <Route
           path="/dashboard"
           element={
@@ -86,6 +156,14 @@ export default function App() {
                 hospitalName={hospitalName}
                 setIsAuthenticated={setIsAuthenticated}
               />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/request-code"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <RequestCode hcpCode={hcpCode} hospitalName={hospitalName} />
             </ProtectedRoute>
           }
         />

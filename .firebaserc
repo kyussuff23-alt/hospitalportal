@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "nonsuch-hospitalportal"
-  }
+    "default": "synaegis-hospital"
+  },
+  "targets": {},
+  "etags": {}
 }
